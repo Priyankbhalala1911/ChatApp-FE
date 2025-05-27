@@ -10,7 +10,11 @@ import toast from "react-hot-toast";
 const SignupForm = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [userData, setUserData] = useState<User>({
+  const [userData, setUserData] = useState<{
+    name: string;
+    email: string;
+    password: string;
+  }>({
     name: "",
     email: "",
     password: "",
@@ -27,7 +31,11 @@ const SignupForm = () => {
     setLoading(true);
     setError([]);
     try {
-      const result = await registerUser(userData);
+      const result = await registerUser({
+        ...userData,
+        id: "",
+        profileImage: "",
+      });
       const data = await result?.json();
 
       if (!result?.ok) {

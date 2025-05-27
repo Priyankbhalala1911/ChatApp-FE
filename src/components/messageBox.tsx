@@ -1,5 +1,5 @@
 import { useAuth } from "@/context/AuthContext";
-import { Box, Typography } from "@mui/material";
+import { Box, CircularProgress, Typography } from "@mui/material";
 import React, { useEffect, useRef, useState } from "react";
 
 export interface User {
@@ -26,9 +26,10 @@ export interface Message {
 
 interface MessagesBoxProps {
   messages: Message[];
+  loading: boolean;
 }
 
-const MessagesBox: React.FC<MessagesBoxProps> = ({ messages }) => {
+const MessagesBox: React.FC<MessagesBoxProps> = ({ messages, loading }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const [isAutoScroll, setIsAutoScroll] = useState(true);
@@ -68,7 +69,19 @@ const MessagesBox: React.FC<MessagesBoxProps> = ({ messages }) => {
         },
       }}
     >
-      {messages.length === 0 ? (
+      {loading ? (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            height: "100%",
+            minHeight: "200px",
+            maxHeight: "calc(100vh - 200px)",
+          }}
+        >
+          <CircularProgress />
+        </Box>
+      ) : messages.length === 0 ? (
         <Box
           sx={{
             display: "flex",

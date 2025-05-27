@@ -11,13 +11,14 @@ import {
   Badge,
   ListItemText,
   Divider,
+  CircularProgress,
 } from "@mui/material";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import LogoutIcon from "@mui/icons-material/Logout";
 import SearchIcon from "@mui/icons-material/Search";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import { useAuth } from "@/context/AuthContext";
-import { getUser, logout } from "@/actions/auth";
+import { getUser, getUserWithConversation, logout } from "@/actions/auth";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { User } from "@/typed";
@@ -26,6 +27,21 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
   const { user } = useAuth();
   const router = useRouter();
   const [searchUser, setSearchUser] = useState<User[]>([]);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const userData = await getUserWithConversation();
+        if (userData) {
+          setSearchUser(userData.data);
+        }
+      } catch (error) {
+        console.error("Error fetching user", error);
+        setSearchUser([]);
+      }
+    };
+    fetchUser();
+  }, []);
 
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.trim();
@@ -183,7 +199,17 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
               </Box>
             ))
           ) : (
-            <Typography color="error">User not Found</Typography>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                height: "100%",
+                minHeight: "200px",
+                maxHeight: "calc(100vh - 200px)",
+              }}
+            >
+              <CircularProgress />
+            </Box>
           )}
         </List>
       </Box>

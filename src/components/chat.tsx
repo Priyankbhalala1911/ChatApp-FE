@@ -14,6 +14,7 @@ import {
 import { useEffect, useState } from "react";
 import socket from "@/context/socket";
 import { useAuth } from "@/context/AuthContext";
+import { Conversation, Message } from "@/actions/message";
 
 export interface Conversation {
   id: string;
@@ -32,7 +33,53 @@ export interface Message {
 const chat = ({ receiver }: { receiver: User }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const { user } = useAuth();
+  useEffect(() => {
+    const fetchConversation = async () => {
+      try {
+        const conversation = await Conversation(receiver.id);
+
+        if (conversation?.data?.id) {
+          setConversationId(conversation.data.id);
+        } else {
+          setConversationId(null);
+          setMessages([]);
+        }
+      } catch (error) {
+        console.error("Error fetching conversation:", error);
+        setConversationId(null);
+        setMessages([]);
+      }
+    };
+
+    fetchConversation();
+  }, [receiver.id]);
+  useEffect(() => {
+    const fetchMessage = async () => {
+      if (!conversationId) {
+        setMessages([]);
+        return;
+      }
+      setLoading(true);
+      try {
+        const message = await Message(conversationId);
+
+        if (message?.data?.length > 0) {
+          setMessages(message.data);
+        } else {
+          setMessages([]);
+        }
+      } catch (error) {
+        console.error("Error fetching messages:", error);
+        setMessages([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMessage();
+  }, [conversationId]);
 
   useEffect(() => {
     socket.emit("join", user.id);
@@ -60,17 +107,6 @@ const chat = ({ receiver }: { receiver: User }) => {
       receiverId: receiver.id,
       text: input.trim(),
     });
-    // const newMessage = {
-    //   text: input.trim(),
-    //   timestamp: new Date()
-    //     .toLocaleTimeString([], {
-    //       hour: "2-digit",
-    //       minute: "2-digit",
-    //       hour12: true,
-    //     })
-    //     .toLowerCase(),
-    // };
-    // setMessages((prev) => [...prev, newMessage]);
     setInput("");
   };
 
@@ -118,7 +154,7 @@ const chat = ({ receiver }: { receiver: User }) => {
           </Typography>
         </Box>
       </Box>
-      <MessagesBox messages={messages} />
+      <MessagesBox messages={messages} loading={loading} />
       <Box
         sx={{
           display: "flex",
