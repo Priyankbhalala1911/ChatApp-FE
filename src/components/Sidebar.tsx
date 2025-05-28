@@ -22,35 +22,57 @@ import { getUser, getUserWithConversation, logout } from "@/actions/auth";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { User } from "@/typed";
+import socket from "@/context/socket";
 
 const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
   const { user } = useAuth();
   const router = useRouter();
   const [searchUser, setSearchUser] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const userData = await getUserWithConversation();
-        if (userData) {
-          setSearchUser(userData.data);
-        }
-      } catch (error) {
-        console.error("Error fetching user", error);
-        setSearchUser([]);
-      }
-    };
+    // Initial fetch of users and setup socket
     fetchUser();
-  }, []);
+
+    if (user.id) {
+      // Connect socket and emit online status
+      socket.connect();
+      socket.emit("user_online", user.id);
+
+      // Listen for online status changes
+      socket.on("user_status_changed", ({ userId, isOnline }) => {
+        setSearchUser((prev) =>
+          prev.map((u) => (u.id === userId ? { ...u, isOnline } : u))
+        );
+      });
+    }
+
+    return () => {
+      // Cleanup socket listeners
+      socket.off("user_status_changed");
+    };
+  }, [user.id]);
+
+  const fetchUser = async () => {
+    try {
+      const userData = await getUserWithConversation();
+      if (userData) {
+        setSearchUser(userData.data);
+      }
+    } catch (error) {
+      console.error("Error fetching user", error);
+      setSearchUser([]);
+    }
+  };
 
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.trim();
 
     if (!value) {
-      setSearchUser([]);
+      await fetchUser();
       return;
     }
-
+    setIsLoading(true);
     try {
       const response = await getUser(value);
       const data = await response?.json();
@@ -63,15 +85,26 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
     } catch (error) {
       console.error("Search failed", error);
       setSearchUser([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handlelogout = async () => {
-    router.replace("/login");
-    const response = await logout();
-    const data = await response?.json();
-    if (response) {
-      toast.success(data?.message);
+    try {
+      // Disconnect socket first
+      socket.disconnect();
+
+      // Navigate to login and call logout API
+      router.replace("/login");
+      const response = await logout();
+      const data = await response?.json();
+      if (response) {
+        toast.success(data?.message);
+      }
+    } catch (error) {
+      console.error("Error during logout:", error);
+      toast.error("Error during logout");
     }
   };
   return (
@@ -159,7 +192,19 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
         }}
       >
         <List>
-          {searchUser.length > 0 ? (
+          {isLoading ? (
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                height: "100%",
+                minHeight: "200px",
+                maxHeight: "calc(100vh - 200px)",
+              }}
+            >
+              <CircularProgress />
+            </Box>
+          ) : searchUser.length > 0 ? (
             searchUser.map((user, index) => (
               <Box key={user.id}>
                 <ListItem
@@ -172,22 +217,45 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
                   onClick={() => onUserSelect(user)}
                 >
                   <ListItemAvatar>
-                    {/* <Badge
-                    color="success"
-                    variant="dot"
-                    overlap="circular"
-                    invisible={!user.isOnline}
-                    anchorOrigin={{
-                      vertical: "bottom",
-                      horizontal: "right",
-                    }}
-                  > */}
-                    <Avatar
-                      src={user.profileImage}
-                      alt={user.name}
-                      sx={{ border: "1px solid black", p: "5px" }}
-                    />
-                    {/* </Badge> */}
+                    <Badge
+                      color="success"
+                      variant="dot"
+                      overlap="circular"
+                      invisible={!user.isOnline}
+                      anchorOrigin={{
+                        vertical: "bottom",
+                        horizontal: "right",
+                      }}
+                      sx={{
+                        "& .MuiBadge-badge": {
+                          backgroundColor: "#44b700",
+                          "&::after": {
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            width: "100%",
+                            height: "100%",
+                            borderRadius: "50%",
+                            animation: "ripple 1.2s infinite ease-in-out",
+                            border: "2px solid #44b700",
+                            content: '""',
+                          },
+                        },
+                      }}
+                    >
+                      <Avatar
+                        src={user.profileImage}
+                        alt={user.name}
+                        sx={{
+                          width: 45,
+                          height: 45,
+                          border: user.isOnline
+                            ? "2px solid #44b700"
+                            : "2px solid #888",
+                          transition: "border-color 0.3s ease",
+                        }}
+                      />
+                    </Badge>
                   </ListItemAvatar>
                   <ListItemText
                     primary={
@@ -203,12 +271,14 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
               sx={{
                 display: "flex",
                 justifyContent: "center",
+                alignItems: "center",
                 height: "100%",
                 minHeight: "200px",
-                maxHeight: "calc(100vh - 200px)",
               }}
             >
-              <CircularProgress />
+              <Typography variant="body1" color="textSecondary">
+                No users found
+              </Typography>
             </Box>
           )}
         </List>
@@ -224,15 +294,72 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
         p={2}
         boxShadow={3}
       >
-        <Avatar
-          src={user.profileImage}
-          alt={user.name}
-          sx={{ border: "1px solid black", p: "5px" }}
-        />
-        <Typography variant="body1" fontWeight="bold">
-          {user.name.toUpperCase()}
-        </Typography>
-        <IconButton color="error" size="small" onClick={handlelogout}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Badge
+            color="success"
+            variant="dot"
+            overlap="circular"
+            anchorOrigin={{
+              vertical: "bottom",
+              horizontal: "right",
+            }}
+            sx={{
+              "& .MuiBadge-badge": {
+                backgroundColor: "#44b700",
+                "&::after": {
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  borderRadius: "50%",
+                  animation: "ripple 1.2s infinite ease-in-out",
+                  border: "2px solid #44b700",
+                  content: '""',
+                },
+              },
+            }}
+          >
+            <Avatar
+              src={user.profileImage}
+              alt={user.name}
+              sx={{
+                width: 45,
+                height: 45,
+                border: "2px solid #44b700",
+                transition: "border-color 0.3s ease",
+              }}
+            />
+          </Badge>
+          <Box>
+            <Typography variant="body1" fontWeight="bold">
+              {user.name}
+            </Typography>
+            <Typography
+              variant="caption"
+              sx={{
+                color: "#44b700",
+                fontWeight: 600,
+                display: "flex",
+                alignItems: "center",
+                gap: 0.5,
+              }}
+            >
+              Active Now
+            </Typography>
+          </Box>
+        </Box>
+        <IconButton
+          color="error"
+          size="small"
+          onClick={handlelogout}
+          sx={{
+            backgroundColor: "rgba(211, 47, 47, 0.04)",
+            "&:hover": {
+              backgroundColor: "rgba(211, 47, 47, 0.1)",
+            },
+          }}
+        >
           <LogoutIcon />
         </IconButton>
       </Box>

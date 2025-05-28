@@ -36,6 +36,29 @@ const chat = ({ receiver }: { receiver: User }) => {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
+
+  // useEffect(() => {
+  //   setIsReceiverOnline(receiver.isOnline);
+
+  //   const handleStatusChange = ({
+  //     userId,
+  //     isOnline,
+  //   }: {
+  //     userId: string;
+  //     isOnline: boolean;
+  //   }) => {
+  //     if (userId === receiver.id) {
+  //       setIsReceiverOnline(isOnline);
+  //     }
+  //   };
+
+  //   socket.on("user_status_changed", handleStatusChange);
+
+  //   return () => {
+  //     socket.off("user_status_changed", handleStatusChange);
+  //   };
+  // }, [receiver.id, receiver.isOnline]);
+
   useEffect(() => {
     const fetchConversation = async () => {
       try {
@@ -56,6 +79,7 @@ const chat = ({ receiver }: { receiver: User }) => {
 
     fetchConversation();
   }, [receiver.id]);
+
   useEffect(() => {
     const fetchMessage = async () => {
       if (!conversationId) {
@@ -84,7 +108,7 @@ const chat = ({ receiver }: { receiver: User }) => {
   useEffect(() => {
     socket.emit("join", user.id);
 
-    socket.on("received_message", (payload: Message) => {
+    const handleReceivedMessage = (payload: Message) => {
       if (
         (payload.sender.id === user.id &&
           payload.receiver.id === receiver.id) ||
@@ -92,10 +116,12 @@ const chat = ({ receiver }: { receiver: User }) => {
       ) {
         setMessages((prev) => [...prev, payload]);
       }
-    });
+    };
+
+    socket.on("received_message", handleReceivedMessage);
 
     return () => {
-      socket.off("received_message");
+      socket.off("received_message", handleReceivedMessage);
     };
   }, [user.id, receiver.id]);
 
@@ -135,22 +161,59 @@ const chat = ({ receiver }: { receiver: User }) => {
           flexShrink: 0,
         }}
       >
-        <Avatar
-          src={receiver.profileImage}
-          alt={receiver.name}
-          sx={{
-            width: 48,
-            height: 48,
-            border: "2px solid white",
-            boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+        <Badge
+          color="success"
+          variant="dot"
+          overlap="circular"
+          invisible={!receiver.isOnline}
+          anchorOrigin={{
+            vertical: "bottom",
+            horizontal: "right",
           }}
-        />
+          sx={{
+            "& .MuiBadge-badge": {
+              backgroundColor: "#44b700",
+              "&::after": {
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                borderRadius: "50%",
+                animation: "ripple 1.2s infinite ease-in-out",
+                border: "1px solid #44b700",
+                content: '""',
+              },
+            },
+            "@keyframes ripple": {
+              "0%": {
+                transform: "scale(.8)",
+                opacity: 1,
+              },
+              "100%": {
+                transform: "scale(2.4)",
+                opacity: 0,
+              },
+            },
+          }}
+        >
+          <Avatar
+            src={receiver.profileImage}
+            alt={receiver.name}
+            sx={{
+              width: 48,
+              height: 48,
+              border: "2px solid white",
+              boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+            }}
+          />
+        </Badge>
         <Box sx={{ textAlign: "left" }}>
           <Typography variant="h6" sx={{ fontWeight: "600" }}>
             {receiver.name}
           </Typography>
           <Typography variant="body2" sx={{ opacity: 0.9 }}>
-            Online
+            {receiver.isOnline ? "Online" : "Offline"}
           </Typography>
         </Box>
       </Box>
@@ -214,4 +277,5 @@ const chat = ({ receiver }: { receiver: User }) => {
     </Box>
   );
 };
+
 export default chat;
