@@ -3,11 +3,22 @@
 import Sidebar from "@/components/Sidebar";
 import { User } from "@/typed";
 import { Box, Container, Typography } from "@mui/material";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Chat from "@/components/chat";
+import socket from "@/context/socket";
 
 const Home = () => {
   const [selectUser, setSelectUser] = useState<User>();
+  useEffect(() => {
+    if (selectUser?.id) {
+      socket.emit("user_online", selectUser.id);
+    }
+
+    return () => {
+      socket.off("user_status_changed");
+    };
+  }, [selectUser?.id]);
+
   return (
     <Container
       maxWidth="lg"
