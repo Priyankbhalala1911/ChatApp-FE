@@ -49,7 +49,7 @@ const UserInfo = () => {
             sx={{
               color: "#44b700",
               fontWeight: 600,
-              display: "flex",
+              display: user.name ? "flex" : "none",
               alignItems: "center",
               gap: 0.5,
             }}
