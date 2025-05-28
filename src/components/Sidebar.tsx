@@ -1,32 +1,16 @@
-import {
-  Box,
-  Typography,
-  IconButton,
-  Avatar,
-  TextField,
-  InputAdornment,
-  List,
-  ListItem,
-  ListItemAvatar,
-  Badge,
-  ListItemText,
-  Divider,
-  CircularProgress,
-} from "@mui/material";
+import { Box, Typography, TextField, InputAdornment } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import LogoutIcon from "@mui/icons-material/Logout";
 import SearchIcon from "@mui/icons-material/Search";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import { useAuth } from "@/context/AuthContext";
-import { getUser, getUserWithConversation, logout } from "@/actions/auth";
-import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
+import { getUser, getUserWithConversation } from "@/actions/auth";
 import { User } from "@/typed";
 import socket from "@/context/socket";
+import ListedUser from "./ListedUser";
+import UserInfo from "./UserInfo";
 
 const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
   const { user } = useAuth();
-  const router = useRouter();
   const [searchUser, setSearchUser] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -90,23 +74,6 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
     }
   };
 
-  const handlelogout = async () => {
-    try {
-      // Disconnect socket first
-      socket.disconnect();
-
-      // Navigate to login and call logout API
-      router.replace("/login");
-      const response = await logout();
-      const data = await response?.json();
-      if (response) {
-        toast.success(data?.message);
-      }
-    } catch (error) {
-      console.error("Error during logout:", error);
-      toast.error("Error during logout");
-    }
-  };
   return (
     <Box
       width="300px"
@@ -191,178 +158,13 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
           },
         }}
       >
-        <List>
-          {isLoading ? (
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                height: "100%",
-                minHeight: "200px",
-                maxHeight: "calc(100vh - 200px)",
-              }}
-            >
-              <CircularProgress />
-            </Box>
-          ) : searchUser.length > 0 ? (
-            searchUser.map((user, index) => (
-              <Box key={user.id}>
-                <ListItem
-                  sx={{
-                    py: 1,
-                    px: 0,
-                    cursor: "pointer",
-                    "&:hover": { bgcolor: "lightgray", borderRadius: 2 },
-                  }}
-                  onClick={() => onUserSelect(user)}
-                >
-                  <ListItemAvatar>
-                    <Badge
-                      color="success"
-                      variant="dot"
-                      overlap="circular"
-                      invisible={!user.isOnline}
-                      anchorOrigin={{
-                        vertical: "bottom",
-                        horizontal: "right",
-                      }}
-                      sx={{
-                        "& .MuiBadge-badge": {
-                          backgroundColor: "#44b700",
-                          "&::after": {
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            width: "100%",
-                            height: "100%",
-                            borderRadius: "50%",
-                            animation: "ripple 1.2s infinite ease-in-out",
-                            border: "2px solid #44b700",
-                            content: '""',
-                          },
-                        },
-                      }}
-                    >
-                      <Avatar
-                        src={user.profileImage}
-                        alt={user.name}
-                        sx={{
-                          width: 45,
-                          height: 45,
-                          border: user.isOnline
-                            ? "2px solid #44b700"
-                            : "2px solid #888",
-                          transition: "border-color 0.3s ease",
-                        }}
-                      />
-                    </Badge>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={
-                      <Typography variant="subtitle1">{user.name}</Typography>
-                    }
-                  />
-                </ListItem>
-                {index < searchUser.length - 1 && <Divider />}
-              </Box>
-            ))
-          ) : (
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                height: "100%",
-                minHeight: "200px",
-              }}
-            >
-              <Typography variant="body1" color="textSecondary">
-                No users found
-              </Typography>
-            </Box>
-          )}
-        </List>
+        <ListedUser
+          isLoading={isLoading}
+          searchUser={searchUser}
+          onUserSelect={(user) => onUserSelect(user)}
+        />
       </Box>
-
-      <Box
-        display="flex"
-        alignItems="center"
-        justifyContent="space-between"
-        bgcolor="rgba(255,255,255,0.9)"
-        color="black"
-        borderRadius={1}
-        p={2}
-        boxShadow={3}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Badge
-            color="success"
-            variant="dot"
-            overlap="circular"
-            anchorOrigin={{
-              vertical: "bottom",
-              horizontal: "right",
-            }}
-            sx={{
-              "& .MuiBadge-badge": {
-                backgroundColor: "#44b700",
-                "&::after": {
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                  borderRadius: "50%",
-                  animation: "ripple 1.2s infinite ease-in-out",
-                  border: "2px solid #44b700",
-                  content: '""',
-                },
-              },
-            }}
-          >
-            <Avatar
-              src={user.profileImage}
-              alt={user.name}
-              sx={{
-                width: 45,
-                height: 45,
-                border: "2px solid #44b700",
-                transition: "border-color 0.3s ease",
-              }}
-            />
-          </Badge>
-          <Box>
-            <Typography variant="body1" fontWeight="bold">
-              {user.name}
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{
-                color: "#44b700",
-                fontWeight: 600,
-                display: "flex",
-                alignItems: "center",
-                gap: 0.5,
-              }}
-            >
-              Active Now
-            </Typography>
-          </Box>
-        </Box>
-        <IconButton
-          color="error"
-          size="small"
-          onClick={handlelogout}
-          sx={{
-            backgroundColor: "rgba(211, 47, 47, 0.04)",
-            "&:hover": {
-              backgroundColor: "rgba(211, 47, 47, 0.1)",
-            },
-          }}
-        >
-          <LogoutIcon />
-        </IconButton>
-      </Box>
+      <UserInfo />
     </Box>
   );
 };

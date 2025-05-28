@@ -1,4 +1,5 @@
 import { useAuth } from "@/context/AuthContext";
+import { FormattedDateAndTime } from "@/utiles/formattedDateAndTime";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import React, { useEffect, useRef, useState } from "react";
 
@@ -163,13 +164,7 @@ const MessagesBox: React.FC<MessagesBoxProps> = ({ messages, loading }) => {
                   marginBottom: "12px",
                 }}
               >
-                {new Date(msg.createdAt)
-                  .toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: true,
-                  })
-                  .toLowerCase()}
+                {FormattedDateAndTime(msg.createdAt)}
               </Typography>
             </Box>
           );
