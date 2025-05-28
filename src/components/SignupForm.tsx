@@ -35,6 +35,7 @@ const SignupForm = () => {
         ...userData,
         id: "",
         profileImage: "",
+        isOnline: false,
       });
       const data = await result?.json();
 

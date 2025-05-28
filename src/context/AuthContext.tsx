@@ -3,7 +3,14 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { getToken } from "@/actions/auth";
 import { useRouter } from "next/navigation";
-import { User } from "@/typed";
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+  profileImage: string;
+}
 
 type AuthContextType = {
   isAuthenticated: boolean;
