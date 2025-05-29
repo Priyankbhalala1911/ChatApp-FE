@@ -1,5 +1,6 @@
 import { useAuth } from "@/context/AuthContext";
 import { FormattedDateAndTime } from "@/utils/formattedDateAndTime";
+import { DoneAll } from "@mui/icons-material";
 import {
   Box,
   CircularProgress,
@@ -167,6 +168,19 @@ const MessagesBox: React.FC<MessagesBoxProps> = ({ messages, loading }) => {
                 >
                   {msg.text}
                 </Typography>
+                <Box
+                  sx={{
+                    position: "absolute",
+                    bottom: "4px",
+                    right: "5px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "2px",
+                  }}
+                >
+                  {isCurrentUser && <DoneAll sx={{ fontSize: "15px" }} />}
+                </Box>
+
                 {/* <Box
                   sx={{
                     position: "absolute",

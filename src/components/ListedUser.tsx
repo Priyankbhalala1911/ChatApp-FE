@@ -2,8 +2,6 @@
 
 import { User } from "@/typed";
 import {
-  Avatar,
-  Badge,
   Box,
   CircularProgress,
   Divider,
@@ -29,12 +27,13 @@ const ListedUser = ({ isLoading, searchUser, onUserSelect }: ListedUser) => {
           sx={{
             display: "flex",
             justifyContent: "center",
+            alignItems: "center",
             height: "100%",
             minHeight: "200px",
             maxHeight: "calc(100vh - 200px)",
           }}
         >
-          <CircularProgress />
+          <CircularProgress sx={{ color: "rgba(102, 126, 234, 0.8)" }} />
         </Box>
       ) : searchUser.length > 0 ? (
         searchUser.map((user, index) => (
@@ -44,7 +43,11 @@ const ListedUser = ({ isLoading, searchUser, onUserSelect }: ListedUser) => {
                 py: 1,
                 px: 0,
                 cursor: "pointer",
-                "&:hover": { bgcolor: "lightgray", borderRadius: 2 },
+                borderRadius: 2,
+                "&:hover": {
+                  background:
+                    "linear-gradient(135deg, #babcf6 0%, #d2c0e0 100%)",
+                },
               }}
               onClick={() => onUserSelect(user)}
             >
@@ -53,11 +56,15 @@ const ListedUser = ({ isLoading, searchUser, onUserSelect }: ListedUser) => {
               </ListItemAvatar>
               <ListItemText
                 primary={
-                  <Typography variant="subtitle1">{user.name}</Typography>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                    {user.name}
+                  </Typography>
                 }
               />
             </ListItem>
-            {index < searchUser.length - 1 && <Divider />}
+            {index < searchUser.length - 1 && (
+              <Divider sx={{ borderColor: "#764ba2" }} />
+            )}
           </Box>
         ))
       ) : (
@@ -70,7 +77,7 @@ const ListedUser = ({ isLoading, searchUser, onUserSelect }: ListedUser) => {
             minHeight: "200px",
           }}
         >
-          <Typography variant="body1" color="textSecondary">
+          <Typography variant="body1" sx={{ color: "#764ba2" }}>
             No users found
           </Typography>
         </Box>
@@ -78,4 +85,5 @@ const ListedUser = ({ isLoading, searchUser, onUserSelect }: ListedUser) => {
     </List>
   );
 };
+
 export default ListedUser;

@@ -1,4 +1,13 @@
-import { Box, Typography, TextField, InputAdornment, useTheme, useMediaQuery, Drawer, IconButton } from "@mui/material";
+import {
+  Box,
+  Typography,
+  TextField,
+  InputAdornment,
+  useTheme,
+  useMediaQuery,
+  Drawer,
+  IconButton,
+} from "@mui/material";
 import React, { useEffect, useState } from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
@@ -15,8 +24,11 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
   const [searchUser, setSearchUser] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Determine if dark mode is active
+  const isDark = theme.palette.mode === "dark";
 
   useEffect(() => {
     fetchUser();
@@ -38,6 +50,7 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
 
   const fetchUser = async () => {
     try {
+      setIsLoading(true);
       const userData = await getUserWithConversation();
       if (userData) {
         setSearchUser(userData.data);
@@ -45,6 +58,8 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
     } catch (error) {
       console.error("Error fetching user", error);
       setSearchUser([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -75,7 +90,7 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
 
   const sidebarContent = (
     <Box
-      width={{ xs: "100%", sm: "300px" }}
+      width={{ xs: "100%", sm: "400px" }}
       height="100%"
       display="flex"
       flexDirection="column"
@@ -84,9 +99,10 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
         borderTopRightRadius: { xs: 0, sm: "10px" },
         borderBottomRightRadius: { xs: 0, sm: "10px" },
         overflow: "hidden",
-        background: "white",
         boxShadow: "4px 0 15px rgba(0, 0, 0, 0.08)",
-        borderRight: "1px solid rgba(0, 0, 0, 0.1)",
+        borderRight: `1px solid ${
+          isDark ? "rgba(102, 126, 234, 0.6)" : "rgba(102, 126, 234, 0.3)"
+        }`,
       }}
     >
       <Box
@@ -95,12 +111,15 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
           display: "flex",
           flexDirection: "column",
           gap: 2,
+          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          borderBottom: isDark ? "1px solid #4a4a8c" : "1px solid #ccc",
+          color: isDark ? "#fff" : "inherit",
         }}
       >
         <Typography
           variant="h5"
           sx={{
-            background: "linear-gradient(to right,blue,purple,pink)",
+            background: "#fff",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             fontWeight: 700,
@@ -110,29 +129,28 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
             gap: 1,
           }}
         >
-          <ChatBubbleOutlineIcon sx={{ color: "purple" }} /> Chat App
+          <ChatBubbleOutlineIcon sx={{ color: "#fff" }} /> Chat App
         </Typography>
 
         <TextField
-          placeholder="Search"
+          placeholder="Search users..."
           variant="outlined"
           size="small"
           onChange={handleChange}
           fullWidth
           sx={{
-            backgroundColor: "white",
-            borderRadius: 1,
-            boxShadow: 3,
+            backgroundColor: "#ffffff",
+            borderRadius: 2,
+            boxShadow: 1,
             "& .MuiOutlinedInput-root": {
-              "& fieldset": {
-                border: "none",
-              },
+              "& fieldset": { border: "none" },
+              px: 1,
             },
           }}
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
-                <SearchIcon color="action" />
+                <SearchIcon sx={{ color: isDark ? "#d1c4e9" : "#764ba2" }} />
               </InputAdornment>
             ),
           }}
@@ -143,20 +161,23 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
         sx={{
           height: "100%",
           px: 2,
+          pt: 1,
+          pb: 1,
           overflow: "auto",
+          background: "linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%)",
           "&::-webkit-scrollbar": {
             width: "3px",
           },
           "&::-webkit-scrollbar-track": {
-            backgroundColor: "#f0f0f0",
+            backgroundColor: isDark ? "#4a4a8c" : "#e0e0e0",
             borderRadius: "4px",
           },
           "&::-webkit-scrollbar-thumb": {
-            backgroundColor: "#888",
+            backgroundColor: isDark ? "#667eea" : "#667eea",
             borderRadius: "4px",
           },
           "&::-webkit-scrollbar-thumb:hover": {
-            backgroundColor: "#555",
+            backgroundColor: isDark ? "#764ba2" : "#764ba2",
           },
         }}
       >
@@ -169,7 +190,19 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
           }}
         />
       </Box>
-      <UserInfo />
+
+      <Box
+        sx={{
+          background: isDark
+            ? "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+            : "linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%)",
+          borderTop: isDark ? "1px solid #4a4a8c" : "1px solid #ccc",
+          p: 2,
+          color: isDark ? "#fff" : "inherit",
+        }}
+      >
+        <UserInfo />
+      </Box>
     </Box>
   );
 
@@ -177,25 +210,31 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
     <>
       {isMobile && (
         <IconButton
-          sx={{ position: 'fixed', top: 10, left: 10, zIndex: 1100 }}
+          sx={{
+            position: "fixed",
+            top: 10,
+            left: 10,
+            zIndex: 1100,
+            color: isDark ? "#a3b1ff" : "#667eea",
+          }}
           onClick={() => setMobileOpen(!mobileOpen)}
         >
           <MenuIcon />
         </IconButton>
       )}
-      
+
       {isMobile ? (
         <Drawer
           variant="temporary"
           open={mobileOpen}
           onClose={() => setMobileOpen(false)}
           ModalProps={{
-            keepMounted: true, // Better open performance on mobile.
+            keepMounted: true,
           }}
           sx={{
-            '& .MuiDrawer-paper': {
-              width: '100%',
-              maxWidth: '300px',
+            "& .MuiDrawer-paper": {
+              width: "100%",
+              maxWidth: "300px",
             },
           }}
         >

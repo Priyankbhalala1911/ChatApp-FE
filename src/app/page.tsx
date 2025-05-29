@@ -2,46 +2,27 @@
 
 import Sidebar from "@/components/Sidebar";
 import { User } from "@/typed";
-import {
-  Box,
-  Container,
-  Typography,
-  useTheme,
-  useMediaQuery,
-} from "@mui/material";
-import React, { useEffect, useState } from "react";
+import { Box, Container, Typography, useTheme } from "@mui/material";
+import React, { useState } from "react";
 import Chat from "@/components/chat";
-import socket from "@/context/socket";
 
 const Home = () => {
   const [selectUser, setSelectUser] = useState<User>();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-
-  useEffect(() => {
-    if (selectUser?.id) {
-      socket.emit("user_online", selectUser.id);
-    }
-
-    return () => {
-      socket.off("user_status_changed");
-    };
-  }, [selectUser?.id]);
 
   return (
-    <Container
-      maxWidth="lg"
+    <Box
       sx={{
+        width: "100vw",
+        height: "100vh",
         display: "flex",
         justifyContent: "center",
-        mt: { xs: 0, sm: 5 },
-        p: { xs: 0, sm: 3 },
+        alignItems: "center",
       }}
     >
       <Box
         sx={{
           width: "100%",
-          height: { xs: "100vh", sm: "calc(100vh - 64px)" },
+          height: "100%",
           bgcolor: "white",
           border: { xs: "none", sm: "1px solid #ddd" },
           boxShadow: { xs: 0, sm: 3 },
@@ -58,8 +39,8 @@ const Home = () => {
         ) : (
           <Box
             sx={{
-              width: { xs: "100%", sm: "calc(100% - 300px)" },
-              display: { xs: selectUser ? "none" : "flex", sm: "flex" },
+              width: { xs: "100%", sm: "calc(100% - 400px)" },
+              display: "flex",
               flexDirection: "column",
               gap: "8px",
               alignItems: "center",
@@ -67,7 +48,7 @@ const Home = () => {
               borderTopRightRadius: { xs: 0, sm: "8px" },
               borderBottomRightRadius: { xs: 0, sm: "8px" },
               p: { xs: 3, sm: 2 },
-              background: "linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%)",
+              background: "linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%)",
             }}
           >
             <Typography
@@ -80,7 +61,8 @@ const Home = () => {
               <Box
                 component="span"
                 sx={{
-                  background: "linear-gradient(45deg, blue, purple, pink)",
+                  background:
+                    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                   fontWeight: 700,
@@ -101,7 +83,7 @@ const Home = () => {
           </Box>
         )}
       </Box>
-    </Container>
+    </Box>
   );
 };
 

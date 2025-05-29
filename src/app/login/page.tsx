@@ -2,14 +2,22 @@
 
 import AuthRedirect from "@/components/AuthRedirect";
 import LoginForm from "@/components/LoginForm";
-import { Container, Typography } from "@mui/material";
+import { Box, Container, Typography } from "@mui/material";
 import Link from "next/link";
 import React from "react";
 
 const Login = () => {
   return (
     <AuthRedirect>
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-l from-blue-500 via-purple-500 to-pink-500">
+      <Box
+        sx={{
+          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          height: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <Container
           maxWidth="xs"
           className="bg-white p-6 rounded-xl shadow-lg border-bootom-2"
@@ -25,7 +33,7 @@ const Login = () => {
             </Link>
           </Typography>
         </Container>
-      </div>
+      </Box>
     </AuthRedirect>
   );
 };
