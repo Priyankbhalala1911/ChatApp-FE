@@ -1,7 +1,8 @@
-import { Box, Typography, TextField, InputAdornment } from "@mui/material";
+import { Box, Typography, TextField, InputAdornment, useTheme, useMediaQuery, Drawer, IconButton } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
+import MenuIcon from "@mui/icons-material/Menu";
 import { useAuth } from "@/context/AuthContext";
 import { getUser, getUserWithConversation } from "@/actions/auth";
 import { User } from "@/typed";
@@ -13,17 +14,16 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
   const { user } = useAuth();
   const [searchUser, setSearchUser] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    // Initial fetch of users and setup socket
     fetchUser();
 
     if (user.id) {
-      // Connect socket and emit online status
-      socket.connect();
       socket.emit("user_online", user.id);
 
-      // Listen for online status changes
       socket.on("user_status_changed", ({ userId, isOnline }) => {
         setSearchUser((prev) =>
           prev.map((u) => (u.id === userId ? { ...u, isOnline } : u))
@@ -32,7 +32,6 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
     }
 
     return () => {
-      // Cleanup socket listeners
       socket.off("user_status_changed");
     };
   }, [user.id]);
@@ -74,16 +73,16 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
     }
   };
 
-  return (
+  const sidebarContent = (
     <Box
-      width="300px"
+      width={{ xs: "100%", sm: "300px" }}
       height="100%"
       display="flex"
       flexDirection="column"
       justifyContent="space-between"
       sx={{
-        borderTopRightRadius: "10px",
-        borderBottomRightRadius: "10px",
+        borderTopRightRadius: { xs: 0, sm: "10px" },
+        borderBottomRightRadius: { xs: 0, sm: "10px" },
         overflow: "hidden",
         background: "white",
         boxShadow: "4px 0 15px rgba(0, 0, 0, 0.08)",
@@ -106,6 +105,9 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
             WebkitTextFillColor: "transparent",
             fontWeight: 700,
             textAlign: "start",
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
           }}
         >
           <ChatBubbleOutlineIcon sx={{ color: "purple" }} /> Chat App
@@ -161,11 +163,48 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
         <ListedUser
           isLoading={isLoading}
           searchUser={searchUser}
-          onUserSelect={(user) => onUserSelect(user)}
+          onUserSelect={(user) => {
+            onUserSelect(user);
+            if (isMobile) setMobileOpen(false);
+          }}
         />
       </Box>
       <UserInfo />
     </Box>
+  );
+
+  return (
+    <>
+      {isMobile && (
+        <IconButton
+          sx={{ position: 'fixed', top: 10, left: 10, zIndex: 1100 }}
+          onClick={() => setMobileOpen(!mobileOpen)}
+        >
+          <MenuIcon />
+        </IconButton>
+      )}
+      
+      {isMobile ? (
+        <Drawer
+          variant="temporary"
+          open={mobileOpen}
+          onClose={() => setMobileOpen(false)}
+          ModalProps={{
+            keepMounted: true, // Better open performance on mobile.
+          }}
+          sx={{
+            '& .MuiDrawer-paper': {
+              width: '100%',
+              maxWidth: '300px',
+            },
+          }}
+        >
+          {sidebarContent}
+        </Drawer>
+      ) : (
+        sidebarContent
+      )}
+    </>
   );
 };
 

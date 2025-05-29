@@ -1,7 +1,7 @@
 import socket from "@/context/socket";
 import { User } from "@/typed";
 import { Send } from "@mui/icons-material";
-import { Box, IconButton, TextField } from "@mui/material";
+import { Box, IconButton, TextField, useTheme, useMediaQuery } from "@mui/material";
 
 interface Message {
   input: string;
@@ -11,6 +11,9 @@ interface Message {
 }
 
 const SearchMessage = ({ input, setInput, user, receiver }: Message) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   const handleSend = () => {
     if (!input.trim()) return;
 
@@ -26,15 +29,16 @@ const SearchMessage = ({ input, setInput, user, receiver }: Message) => {
     <Box
       sx={{
         display: "flex",
-        gap: 1.5,
-        mt: 2,
+        gap: { xs: 1, sm: 1.5 },
+        mt: { xs: 1, sm: 2 },
         flexShrink: 0,
+        px: { xs: 1, sm: 0 },
       }}
     >
       <TextField
         placeholder="Type your message..."
         variant="outlined"
-        size="medium"
+        size={isMobile ? "small" : "medium"}
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && handleSend()}
@@ -53,6 +57,10 @@ const SearchMessage = ({ input, setInput, user, receiver }: Message) => {
             "&.Mui-focused fieldset": {
               borderColor: "#764ba2",
             },
+            "& input": {
+              fontSize: { xs: "0.875rem", sm: "1rem" },
+              padding: { xs: "10px 14px", sm: "14px" },
+            },
           },
         }}
       />
@@ -69,13 +77,13 @@ const SearchMessage = ({ input, setInput, user, receiver }: Message) => {
         <IconButton
           onClick={handleSend}
           sx={{
-            p: 2,
+            p: { xs: 1.5, sm: 2 },
             "&:hover": {
               background: "rgba(255,255,255,0.1)",
             },
           }}
         >
-          <Send sx={{ color: "white" }} />
+          <Send sx={{ color: "white", fontSize: { xs: "1.25rem", sm: "1.5rem" } }} />
         </IconButton>
       </Box>
     </Box>

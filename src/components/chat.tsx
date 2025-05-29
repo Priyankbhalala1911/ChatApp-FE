@@ -2,7 +2,7 @@
 
 import { User } from "@/typed";
 import MessagesBox from "@/components/messageBox";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, useTheme, useMediaQuery } from "@mui/material";
 import { useEffect, useState } from "react";
 import socket from "@/context/socket";
 import { useAuth } from "@/context/AuthContext";
@@ -30,6 +30,8 @@ const chat = ({ receiver }: { receiver: User }) => {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
     const fetchConversation = async () => {
@@ -99,13 +101,18 @@ const chat = ({ receiver }: { receiver: User }) => {
   return (
     <Box
       sx={{
-        width: "calc(100% - 300px)",
-        p: 2,
+        width: { xs: "100%", sm: "calc(100% - 300px)" },
+        p: { xs: 1, sm: 2 },
         borderRadius: 2,
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
         background: "linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%)",
+        height: "100%",
+        position: { xs: "fixed", sm: "relative" },
+        top: 0,
+        right: 0,
+        zIndex: { xs: 1000, sm: "auto" },
       }}
     >
       <Box
@@ -115,15 +122,16 @@ const chat = ({ receiver }: { receiver: User }) => {
           borderRadius: 3,
           display: "flex",
           alignItems: "center",
-          p: 2,
+          p: { xs: 1.5, sm: 2 },
           gap: 2,
           color: "white",
           flexShrink: 0,
+          mt: { xs: 5, sm: 0 },
         }}
       >
         <OnlineStatus user={receiver} />
         <Box sx={{ textAlign: "left" }}>
-          <Typography variant="h6" sx={{ fontWeight: "600" }}>
+          <Typography variant="h6" sx={{ fontWeight: "600", fontSize: { xs: "1rem", sm: "1.25rem" } }}>
             {receiver.name}
           </Typography>
           <Typography variant="body2" sx={{ opacity: 0.9 }}>

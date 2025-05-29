@@ -12,10 +12,7 @@ const UserInfo = () => {
   const { user } = useAuth();
   const handlelogout = async () => {
     try {
-      // Disconnect socket first
       socket.disconnect();
-
-      // Navigate to login and call logout API
       router.replace("/login");
       const response = await logout();
       const data = await response?.json();
