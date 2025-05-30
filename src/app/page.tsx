@@ -45,8 +45,7 @@ const Home = () => {
               gap: "8px",
               alignItems: "center",
               justifyContent: "center",
-              borderTopRightRadius: { xs: 0, sm: "8px" },
-              borderBottomRightRadius: { xs: 0, sm: "8px" },
+              borderRadius: { xs: 0, sm: "8px" },
               p: { xs: 3, sm: 2 },
               background: "linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%)",
             }}

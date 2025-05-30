@@ -27,7 +27,6 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Determine if dark mode is active
   const isDark = theme.palette.mode === "dark";
 
   useEffect(() => {

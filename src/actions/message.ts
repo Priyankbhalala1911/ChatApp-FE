@@ -1,4 +1,4 @@
-export const Message = async (id: string) => {
+export const getMessagesByConversationId = async (id: string) => {
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_BACKEND_URL}/conversation/${id}/messages`,
@@ -22,7 +22,7 @@ export const Message = async (id: string) => {
   }
 };
 
-export const Conversation = async (receiverId: string) => {
+export const getConversationByUserId = async (receiverId: string) => {
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_BACKEND_URL}/conversation/id?receiverId=${receiverId}`,

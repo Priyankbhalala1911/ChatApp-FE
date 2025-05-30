@@ -1,4 +1,5 @@
 import { useAuth } from "@/context/AuthContext";
+import socket from "@/context/socket";
 import { FormattedDateAndTime } from "@/utils/formattedDateAndTime";
 import { DoneAll } from "@mui/icons-material";
 import {
@@ -30,6 +31,7 @@ export interface Message {
   sender: User;
   receiver: User;
   conversation: Conversation;
+  seen: boolean;
 }
 
 interface MessagesBoxProps {
@@ -37,13 +39,44 @@ interface MessagesBoxProps {
   loading: boolean;
 }
 
-const MessagesBox: React.FC<MessagesBoxProps> = ({ messages, loading }) => {
+const MessagesBox: React.FC<MessagesBoxProps> = ({
+  messages: incomingMessages,
+  loading,
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const [isAutoScroll, setIsAutoScroll] = useState(true);
+  const [messages, setMessages] = useState<Message[]>(incomingMessages);
   const { user: currentUserId } = useAuth();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
+  useEffect(() => {
+    setMessages(incomingMessages);
+  }, [incomingMessages]);
+
+  useEffect(() => {
+    messages.forEach((msg) => {
+      if (msg.receiver.id === currentUserId.id && !msg.seen) {
+        socket.emit("message_seen", { messageId: msg.id });
+      }
+    });
+  }, [messages, currentUserId]);
+
+  useEffect(() => {
+    const handleSeenUpdate = ({ messageId }: { messageId: string }) => {
+      setMessages((prevMessages) =>
+        prevMessages.map((msg) =>
+          msg.id === messageId ? { ...msg, seen: true } : msg
+        )
+      );
+    };
+
+    socket.on("message_seen_update", handleSeenUpdate);
+
+    return () => {
+      socket.off("message_seen_update", handleSeenUpdate);
+    };
+  }, [incomingMessages]);
 
   useEffect(() => {
     if (isAutoScroll && bottomRef.current) {
@@ -53,12 +86,10 @@ const MessagesBox: React.FC<MessagesBoxProps> = ({ messages, loading }) => {
 
   const handleScroll = () => {
     if (!containerRef.current) return;
-
     const container = containerRef.current;
     const nearBottom =
       container.scrollHeight - container.scrollTop - container.clientHeight <
       50;
-
     setIsAutoScroll(nearBottom);
   };
 
@@ -86,7 +117,6 @@ const MessagesBox: React.FC<MessagesBoxProps> = ({ messages, loading }) => {
             justifyContent: "center",
             height: "100%",
             minHeight: { xs: "150px", sm: "200px" },
-            maxHeight: { xs: "calc(100vh - 150px)", sm: "calc(100vh - 200px)" },
           }}
         >
           <CircularProgress />
@@ -98,8 +128,6 @@ const MessagesBox: React.FC<MessagesBoxProps> = ({ messages, loading }) => {
             justifyContent: "center",
             alignItems: "center",
             height: "100%",
-            minHeight: { xs: "150px", sm: "200px" },
-            maxHeight: { xs: "calc(100vh - 150px)", sm: "calc(100vh - 200px)" },
           }}
         >
           <Typography
@@ -119,7 +147,6 @@ const MessagesBox: React.FC<MessagesBoxProps> = ({ messages, loading }) => {
       ) : (
         messages.map((msg, index) => {
           const isCurrentUser = msg.sender.id === currentUserId.id;
-
           return (
             <Box
               key={index}
@@ -128,14 +155,8 @@ const MessagesBox: React.FC<MessagesBoxProps> = ({ messages, loading }) => {
                 mb: { xs: 1, sm: 1.5 },
                 animation: "fadeIn 0.3s ease-out",
                 "@keyframes fadeIn": {
-                  from: {
-                    opacity: 0,
-                    transform: "translateY(10px)",
-                  },
-                  to: {
-                    opacity: 1,
-                    transform: "translateY(0)",
-                  },
+                  from: { opacity: 0, transform: "translateY(10px)" },
+                  to: { opacity: 1, transform: "translateY(0)" },
                 },
               }}
             >
@@ -146,7 +167,6 @@ const MessagesBox: React.FC<MessagesBoxProps> = ({ messages, loading }) => {
                     ? "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
                     : "linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%)",
                   color: isCurrentUser ? "white" : "black",
-                  textAlign: "start",
                   px: { xs: 2, sm: 2.5 },
                   py: { xs: 1, sm: 1.5 },
                   borderRadius: "20px",
@@ -168,38 +188,28 @@ const MessagesBox: React.FC<MessagesBoxProps> = ({ messages, loading }) => {
                 >
                   {msg.text}
                 </Typography>
-                <Box
-                  sx={{
-                    position: "absolute",
-                    bottom: "4px",
-                    right: "5px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "2px",
-                  }}
-                >
-                  {isCurrentUser && <DoneAll sx={{ fontSize: "15px" }} />}
-                </Box>
 
-                {/* <Box
-                  sx={{
-                    position: "absolute",
-                    bottom: "-10px",
-                    right: isCurrentUser ? "auto" : "10px",
-                    left: isCurrentUser ? "10px" : "auto",
-                    display: "flex",
-                    gap: "4px",
-                    alignItems: "center",
-                    bgcolor: "#DEF4FC",
-                    borderRadius: "16px",
-                    px: 0.3,
-                    py: 0.2,
-                    boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
-                  }}
-                >
-                  <Typography sx={{ fontSize: "10px" }}>❤️</Typography>
-                </Box> */}
+                {isCurrentUser && (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      bottom: "2px",
+                      right: "5px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "2px",
+                    }}
+                  >
+                    <DoneAll
+                      sx={{
+                        fontSize: "15px",
+                        color: msg.seen ? "#0096FF" : "gray",
+                      }}
+                    />
+                  </Box>
+                )}
               </Box>
+
               <Typography
                 variant="caption"
                 sx={{

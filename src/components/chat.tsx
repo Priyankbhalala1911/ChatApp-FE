@@ -6,7 +6,10 @@ import { Box, Typography, useTheme, useMediaQuery } from "@mui/material";
 import { useEffect, useState } from "react";
 import socket from "@/context/socket";
 import { useAuth } from "@/context/AuthContext";
-import { Conversation, Message } from "@/actions/message";
+import {
+  getConversationByUserId,
+  getMessagesByConversationId,
+} from "@/actions/message";
 import OnlineStatus from "./OnlineStatus";
 import SearchMessage from "./SearchMessage";
 
@@ -22,6 +25,7 @@ export interface Message {
   sender: User;
   receiver: User;
   conversation: Conversation;
+  seen: boolean;
 }
 
 const chat = ({ receiver }: { receiver: User }) => {
@@ -31,12 +35,11 @@ const chat = ({ receiver }: { receiver: User }) => {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
     const fetchConversation = async () => {
       try {
-        const conversation = await Conversation(receiver.id);
+        const conversation = await getConversationByUserId(receiver.id);
 
         if (conversation?.data?.id) {
           setConversationId(conversation.data.id);
@@ -62,7 +65,7 @@ const chat = ({ receiver }: { receiver: User }) => {
       }
       setLoading(true);
       try {
-        const message = await Message(conversationId);
+        const message = await getMessagesByConversationId(conversationId);
 
         if (message?.data?.length > 0) {
           setMessages(message.data);
@@ -131,7 +134,10 @@ const chat = ({ receiver }: { receiver: User }) => {
       >
         <OnlineStatus user={receiver} />
         <Box sx={{ textAlign: "left" }}>
-          <Typography variant="h6" sx={{ fontWeight: "600", fontSize: { xs: "1rem", sm: "1.25rem" } }}>
+          <Typography
+            variant="h6"
+            sx={{ fontWeight: "600", fontSize: { xs: "1rem", sm: "1.25rem" } }}
+          >
             {receiver.name}
           </Typography>
           <Typography variant="body2" sx={{ opacity: 0.9 }}>
