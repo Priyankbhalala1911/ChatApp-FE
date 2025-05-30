@@ -1,14 +1,9 @@
 import { useAuth } from "@/context/AuthContext";
 import socket from "@/context/socket";
+import { Message } from "@/typed";
 import { FormattedDateAndTime } from "@/utils/formattedDateAndTime";
 import { DoneAll } from "@mui/icons-material";
-import {
-  Box,
-  CircularProgress,
-  Typography,
-  useTheme,
-  useMediaQuery,
-} from "@mui/material";
+import { Box, CircularProgress, Typography } from "@mui/material";
 import React, { useEffect, useRef, useState } from "react";
 
 export interface User {
@@ -17,21 +12,6 @@ export interface User {
   email: string;
   password: string;
   profileImage: string;
-}
-
-export interface Conversation {
-  id: string;
-  isGroup: boolean;
-}
-
-export interface Message {
-  id: string;
-  text: string;
-  createdAt: string;
-  sender: User;
-  receiver: User;
-  conversation: Conversation;
-  seen: boolean;
 }
 
 interface MessagesBoxProps {
@@ -48,7 +28,6 @@ const MessagesBox: React.FC<MessagesBoxProps> = ({
   const [isAutoScroll, setIsAutoScroll] = useState(true);
   const [messages, setMessages] = useState<Message[]>(incomingMessages);
   const { user: currentUserId } = useAuth();
-  const theme = useTheme();
 
   useEffect(() => {
     setMessages(incomingMessages);
@@ -102,8 +81,7 @@ const MessagesBox: React.FC<MessagesBoxProps> = ({
         overflowY: "auto",
         borderRadius: 2,
         p: { xs: 1, sm: 2 },
-        mb: { xs: 1, sm: 2 },
-        maxHeight: { xs: "calc(100vh - 200px)", sm: "calc(100vh - 300px)" },
+        maxHeight: { xs: "calc(100vh - 200px)", sm: "calc(100vh - 220px)" },
         height: "100%",
         "&::-webkit-scrollbar": {
           width: "0px",

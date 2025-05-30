@@ -1,8 +1,8 @@
 "use client";
 
-import { User } from "@/typed";
+import { Message, User } from "@/typed";
 import MessagesBox from "@/components/messageBox";
-import { Box, Typography, useTheme, useMediaQuery } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import socket from "@/context/socket";
 import { useAuth } from "@/context/AuthContext";
@@ -13,28 +13,12 @@ import {
 import OnlineStatus from "./OnlineStatus";
 import SearchMessage from "./SearchMessage";
 
-export interface Conversation {
-  id: string;
-  isGroup: boolean;
-}
-
-export interface Message {
-  id: string;
-  text: string;
-  createdAt: string;
-  sender: User;
-  receiver: User;
-  conversation: Conversation;
-  seen: boolean;
-}
-
 const chat = ({ receiver }: { receiver: User }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
-  const theme = useTheme();
 
   useEffect(() => {
     const fetchConversation = async () => {
@@ -104,7 +88,7 @@ const chat = ({ receiver }: { receiver: User }) => {
   return (
     <Box
       sx={{
-        width: { xs: "100%", sm: "calc(100% - 300px)" },
+        width: { xs: "100%", sm: "calc(100%)" },
         p: { xs: 1, sm: 2 },
         borderRadius: 2,
         display: "flex",

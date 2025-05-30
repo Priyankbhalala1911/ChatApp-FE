@@ -12,14 +12,16 @@ import {
   Typography,
 } from "@mui/material";
 import OnlineStatus from "./OnlineStatus";
+import { useUserStatus } from "@/context/UserStatus";
 
 interface ListedUser {
   isLoading: boolean;
   searchUser: User[];
-  onUserSelect: (user: User) => void;
+  setMobile: (mobile: boolean) => void;
 }
 
-const ListedUser = ({ isLoading, searchUser, onUserSelect }: ListedUser) => {
+const ListedUser = ({ isLoading, searchUser, setMobile }: ListedUser) => {
+  const { setSelectedUser } = useUserStatus();
   return (
     <List>
       {isLoading ? (
@@ -49,7 +51,10 @@ const ListedUser = ({ isLoading, searchUser, onUserSelect }: ListedUser) => {
                     "linear-gradient(135deg, #babcf6 0%, #d2c0e0 100%)",
                 },
               }}
-              onClick={() => onUserSelect(user)}
+              onClick={() => {
+                setSelectedUser(user);
+                setMobile(false);
+              }}
             >
               <ListItemAvatar>
                 <OnlineStatus user={user} />

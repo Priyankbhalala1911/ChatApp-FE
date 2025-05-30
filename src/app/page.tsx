@@ -1,14 +1,13 @@
 "use client";
 
 import Sidebar from "@/components/Sidebar";
-import { User } from "@/typed";
-import { Box, Container, Typography, useTheme } from "@mui/material";
-import React, { useState } from "react";
+import { Box, Typography } from "@mui/material";
+import React from "react";
 import Chat from "@/components/chat";
+import { useUserStatus } from "@/context/UserStatus";
 
 const Home = () => {
-  const [selectUser, setSelectUser] = useState<User>();
-
+  const { selectedUser } = useUserStatus();
   return (
     <Box
       sx={{
@@ -33,9 +32,9 @@ const Home = () => {
           position: "relative",
         }}
       >
-        <Sidebar onUserSelect={setSelectUser} />
-        {selectUser ? (
-          <Chat receiver={selectUser} />
+        <Sidebar />
+        {selectedUser ? (
+          <Chat receiver={selectedUser} />
         ) : (
           <Box
             sx={{

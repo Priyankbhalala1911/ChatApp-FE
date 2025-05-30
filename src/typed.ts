@@ -6,3 +6,18 @@ export interface User {
   profileImage: string;
   isOnline: boolean;
 }
+
+export interface Conversation {
+  id: string;
+  isGroup: boolean;
+}
+
+export interface Message {
+  id: string;
+  text: string;
+  createdAt: string;
+  sender: User;
+  receiver: User;
+  conversation: Conversation;
+  seen: boolean;
+}

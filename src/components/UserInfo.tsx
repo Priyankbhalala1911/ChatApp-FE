@@ -25,7 +25,9 @@ const UserInfo = () => {
       toast.error("Error during logout");
     }
   };
-
+  if (!user) {
+    return null;
+  }
   return (
     <Box
       display="flex"

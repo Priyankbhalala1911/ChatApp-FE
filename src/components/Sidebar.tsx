@@ -18,16 +18,15 @@ import { User } from "@/typed";
 import socket from "@/context/socket";
 import ListedUser from "./ListedUser";
 import UserInfo from "./UserInfo";
+import { useUserStatus } from "@/context/UserStatus";
 
-const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
+const Sidebar = () => {
   const { user } = useAuth();
-  const [searchUser, setSearchUser] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  const isDark = theme.palette.mode === "dark";
+  const { updateUserStatus, setUsers, users } = useUserStatus();
 
   useEffect(() => {
     fetchUser();
@@ -36,9 +35,7 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
       socket.emit("user_online", user.id);
 
       socket.on("user_status_changed", ({ userId, isOnline }) => {
-        setSearchUser((prev) =>
-          prev.map((u) => (u.id === userId ? { ...u, isOnline } : u))
-        );
+        updateUserStatus(userId, isOnline);
       });
     }
 
@@ -52,11 +49,11 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
       setIsLoading(true);
       const userData = await getUserWithConversation();
       if (userData) {
-        setSearchUser(userData.data);
+        setUsers(userData.data);
       }
     } catch (error) {
       console.error("Error fetching user", error);
-      setSearchUser([]);
+      setUsers([]);
     } finally {
       setIsLoading(false);
     }
@@ -75,13 +72,13 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
       const data = await response?.json();
 
       if (Array.isArray(data.users)) {
-        setSearchUser(data.users);
+        setUsers(data.users);
       } else {
-        setSearchUser([]);
+        setUsers([]);
       }
     } catch (error) {
       console.error("Search failed", error);
-      setSearchUser([]);
+      setUsers([]);
     } finally {
       setIsLoading(false);
     }
@@ -99,9 +96,7 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
         borderBottomRightRadius: { xs: 0, sm: "10px" },
         overflow: "hidden",
         boxShadow: "4px 0 15px rgba(0, 0, 0, 0.08)",
-        borderRight: `1px solid ${
-          isDark ? "rgba(102, 126, 234, 0.6)" : "rgba(102, 126, 234, 0.3)"
-        }`,
+        borderRight: `1px solid rgba(102, 126, 234, 0.6)`,
       }}
     >
       <Box
@@ -111,8 +106,8 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
           flexDirection: "column",
           gap: 2,
           background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-          borderBottom: isDark ? "1px solid #4a4a8c" : "1px solid #ccc",
-          color: isDark ? "#fff" : "inherit",
+          borderBottom: "1px solid #4a4a8c",
+          color: "#fff",
         }}
       >
         <Typography
@@ -149,7 +144,7 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
-                <SearchIcon sx={{ color: isDark ? "#d1c4e9" : "#764ba2" }} />
+                <SearchIcon sx={{ color: "#764ba2" }} />
               </InputAdornment>
             ),
           }}
@@ -168,36 +163,31 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
             width: "3px",
           },
           "&::-webkit-scrollbar-track": {
-            backgroundColor: isDark ? "#4a4a8c" : "#e0e0e0",
+            backgroundColor: "#4a4a8c",
             borderRadius: "4px",
           },
           "&::-webkit-scrollbar-thumb": {
-            backgroundColor: isDark ? "#667eea" : "#667eea",
+            backgroundColor: "#667eea",
             borderRadius: "4px",
           },
           "&::-webkit-scrollbar-thumb:hover": {
-            backgroundColor: isDark ? "#764ba2" : "#764ba2",
+            backgroundColor: "#764ba2",
           },
         }}
       >
         <ListedUser
           isLoading={isLoading}
-          searchUser={searchUser}
-          onUserSelect={(user) => {
-            onUserSelect(user);
-            if (isMobile) setMobileOpen(false);
-          }}
+          searchUser={users}
+          setMobile={setMobileOpen}
         />
       </Box>
 
       <Box
         sx={{
-          background: isDark
-            ? "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-            : "linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%)",
-          borderTop: isDark ? "1px solid #4a4a8c" : "1px solid #ccc",
+          background: "linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%)",
+          borderTop: "1px solid #4a4a8c",
           p: 2,
-          color: isDark ? "#fff" : "inherit",
+          color: "#fff",
         }}
       >
         <UserInfo />
@@ -214,7 +204,7 @@ const Sidebar = ({ onUserSelect }: { onUserSelect: (user: User) => void }) => {
             top: 10,
             left: 10,
             zIndex: 1100,
-            color: isDark ? "#a3b1ff" : "#667eea",
+            color: "#a3b1ff",
           }}
           onClick={() => setMobileOpen(!mobileOpen)}
         >
