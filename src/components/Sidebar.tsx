@@ -14,7 +14,6 @@ import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useAuth } from "@/context/AuthContext";
 import { getUser, getUserWithConversation } from "@/actions/auth";
-import { User } from "@/typed";
 import socket from "@/context/socket";
 import ListedUser from "./ListedUser";
 import UserInfo from "./UserInfo";
@@ -154,7 +153,6 @@ const Sidebar = () => {
       <Box
         sx={{
           height: "100%",
-          px: 2,
           pt: 1,
           pb: 1,
           overflow: "auto",
@@ -223,7 +221,7 @@ const Sidebar = () => {
           sx={{
             "& .MuiDrawer-paper": {
               width: "100%",
-              maxWidth: "300px",
+              maxWidth: "400px",
             },
           }}
         >

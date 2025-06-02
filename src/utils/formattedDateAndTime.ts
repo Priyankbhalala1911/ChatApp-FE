@@ -1,4 +1,7 @@
 export const FormattedDateAndTime = (utcDate: string) => {
+  if (!utcDate) {
+    return " ";
+  }
   const timestamp = utcDate;
   const date = new Date(timestamp);
   const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);

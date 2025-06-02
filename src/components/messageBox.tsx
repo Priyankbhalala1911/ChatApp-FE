@@ -2,9 +2,11 @@ import { useAuth } from "@/context/AuthContext";
 import socket from "@/context/socket";
 import { Message } from "@/typed";
 import { FormattedDateAndTime } from "@/utils/formattedDateAndTime";
+import { groupMessagesByDate } from "@/utils/groupMessagesByDate";
 import { DoneAll } from "@mui/icons-material";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import React, { useEffect, useRef, useState } from "react";
+import RenderDateSeparator from "./RenderDateSeperator";
 
 export interface User {
   id: string;
@@ -72,6 +74,88 @@ const MessagesBox: React.FC<MessagesBoxProps> = ({
     setIsAutoScroll(nearBottom);
   };
 
+  const renderMessage = (msg: Message, index: number) => {
+    const isCurrentUser = msg.sender.id === currentUserId.id;
+    return (
+      <Box
+        key={index}
+        sx={{
+          textAlign: isCurrentUser ? "right" : "left",
+          mb: { xs: 1, sm: 1.5 },
+          animation: "fadeIn 0.3s ease-out",
+          "@keyframes fadeIn": {
+            from: { opacity: 0, transform: "translateY(10px)" },
+            to: { opacity: 1, transform: "translateY(0)" },
+          },
+        }}
+      >
+        <Box
+          sx={{
+            display: "inline-block",
+            background: isCurrentUser
+              ? "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+              : "linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%)",
+            color: isCurrentUser ? "white" : "black",
+            px: { xs: 2, sm: 2.5 },
+            py: { xs: 1, sm: 1.5 },
+            borderRadius: "20px",
+            borderTopRightRadius: isCurrentUser ? "4px" : "20px",
+            borderTopLeftRadius: isCurrentUser ? "20px" : "4px",
+            maxWidth: { xs: "85%", sm: "70%" },
+            wordBreak: "break-word",
+            boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+            position: "relative",
+            marginBottom: "4px",
+          }}
+        >
+          <Typography
+            variant="body1"
+            sx={{
+              lineHeight: 1.4,
+              fontSize: { xs: "0.875rem", sm: "1rem" },
+            }}
+          >
+            {msg.text}
+          </Typography>
+
+          {isCurrentUser && (
+            <Box
+              sx={{
+                position: "absolute",
+                bottom: "2px",
+                right: "5px",
+                display: "flex",
+                alignItems: "center",
+                gap: "2px",
+              }}
+            >
+              <DoneAll
+                sx={{
+                  fontSize: "15px",
+                  color: msg.seen ? "#0096FF" : "gray",
+                }}
+              />
+            </Box>
+          )}
+        </Box>
+
+        <Typography
+          variant="caption"
+          sx={{
+            display: "block",
+            textAlign: isCurrentUser ? "right" : "left",
+            color: "rgba(0, 0, 0, 0.6)",
+            fontSize: { xs: "0.45rem", sm: "0.5rem" },
+            padding: isCurrentUser ? "0 8px 0 0" : "0 0 0 8px",
+            marginBottom: { xs: "8px", sm: "12px" },
+          }}
+        >
+          {FormattedDateAndTime(msg.createdAt)}
+        </Typography>
+      </Box>
+    );
+  };
+
   return (
     <Box
       ref={containerRef}
@@ -94,10 +178,11 @@ const MessagesBox: React.FC<MessagesBoxProps> = ({
             display: "flex",
             justifyContent: "center",
             height: "100%",
-            minHeight: { xs: "150px", sm: "200px" },
+            minHeight: "200px",
+            maxHeight: "calc(100vh - 200px)",
           }}
         >
-          <CircularProgress />
+          <CircularProgress sx={{ color: "rgba(102, 126, 234, 0.8)" }} />
         </Box>
       ) : messages.length === 0 ? (
         <Box
@@ -123,87 +208,14 @@ const MessagesBox: React.FC<MessagesBoxProps> = ({
           </Typography>
         </Box>
       ) : (
-        messages.map((msg, index) => {
-          const isCurrentUser = msg.sender.id === currentUserId.id;
-          return (
-            <Box
-              key={index}
-              sx={{
-                textAlign: isCurrentUser ? "right" : "left",
-                mb: { xs: 1, sm: 1.5 },
-                animation: "fadeIn 0.3s ease-out",
-                "@keyframes fadeIn": {
-                  from: { opacity: 0, transform: "translateY(10px)" },
-                  to: { opacity: 1, transform: "translateY(0)" },
-                },
-              }}
-            >
-              <Box
-                sx={{
-                  display: "inline-block",
-                  background: isCurrentUser
-                    ? "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-                    : "linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%)",
-                  color: isCurrentUser ? "white" : "black",
-                  px: { xs: 2, sm: 2.5 },
-                  py: { xs: 1, sm: 1.5 },
-                  borderRadius: "20px",
-                  borderTopRightRadius: isCurrentUser ? "4px" : "20px",
-                  borderTopLeftRadius: isCurrentUser ? "20px" : "4px",
-                  maxWidth: { xs: "85%", sm: "70%" },
-                  wordBreak: "break-word",
-                  boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-                  position: "relative",
-                  marginBottom: "4px",
-                }}
-              >
-                <Typography
-                  variant="body1"
-                  sx={{
-                    lineHeight: 1.4,
-                    fontSize: { xs: "0.875rem", sm: "1rem" },
-                  }}
-                >
-                  {msg.text}
-                </Typography>
-
-                {isCurrentUser && (
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      bottom: "2px",
-                      right: "5px",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "2px",
-                    }}
-                  >
-                    <DoneAll
-                      sx={{
-                        fontSize: "15px",
-                        color: msg.seen ? "#0096FF" : "gray",
-                      }}
-                    />
-                  </Box>
-                )}
-              </Box>
-
-              <Typography
-                variant="caption"
-                sx={{
-                  display: "block",
-                  textAlign: isCurrentUser ? "right" : "left",
-                  color: "rgba(0, 0, 0, 0.6)",
-                  fontSize: { xs: "0.45rem", sm: "0.5rem" },
-                  padding: isCurrentUser ? "0 8px 0 0" : "0 0 0 8px",
-                  marginBottom: { xs: "8px", sm: "12px" },
-                }}
-              >
-                {FormattedDateAndTime(msg.createdAt)}
-              </Typography>
-            </Box>
-          );
-        })
+        Object.entries(groupMessagesByDate(messages)).map(
+          ([date, dateMessages]) => (
+            <React.Fragment key={date}>
+              <RenderDateSeparator date={date} />
+              {dateMessages.map((msg, index) => renderMessage(msg, index))}
+            </React.Fragment>
+          )
+        )
       )}
       <div ref={bottomRef} />
     </Box>

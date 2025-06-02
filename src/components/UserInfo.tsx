@@ -1,4 +1,4 @@
-import { Avatar, Badge, Box, IconButton, Typography } from "@mui/material";
+import { Box, IconButton, Typography } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
 import socket from "@/context/socket";
 import { logout } from "@/actions/auth";

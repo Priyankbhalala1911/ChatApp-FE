@@ -1,7 +1,14 @@
 import socket from "@/context/socket";
 import { User } from "@/typed";
 import { Send } from "@mui/icons-material";
-import { Box, IconButton, TextField, useTheme, useMediaQuery } from "@mui/material";
+import {
+  Box,
+  IconButton,
+  TextField,
+  useTheme,
+  useMediaQuery,
+} from "@mui/material";
+import { useRef } from "react";
 
 interface Message {
   input: string;
@@ -12,7 +19,8 @@ interface Message {
 
 const SearchMessage = ({ input, setInput, user, receiver }: Message) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const typingTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const handleSend = () => {
     if (!input.trim()) return;
@@ -23,8 +31,23 @@ const SearchMessage = ({ input, setInput, user, receiver }: Message) => {
       receiverId: receiver.id,
       text: input.trim(),
     });
+
+    socket.emit("stoptyping", { userId: user.id, receiverId: receiver.id });
     setInput("");
   };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setInput(value);
+
+    socket.emit("typing", { userId: user.id, receiverId: receiver.id });
+
+    if (typingTimeout.current) clearTimeout(typingTimeout.current);
+    typingTimeout.current = setTimeout(() => {
+      socket.emit("stoptyping", { userId: user.id, receiverId: receiver.id });
+    }, 2000);
+  };
+
   return (
     <Box
       sx={{
@@ -40,7 +63,7 @@ const SearchMessage = ({ input, setInput, user, receiver }: Message) => {
         variant="outlined"
         size={isMobile ? "small" : "medium"}
         value={input}
-        onChange={(e) => setInput(e.target.value)}
+        onChange={handleChange}
         onKeyDown={(e) => e.key === "Enter" && handleSend()}
         fullWidth
         sx={{
@@ -83,7 +106,9 @@ const SearchMessage = ({ input, setInput, user, receiver }: Message) => {
             },
           }}
         >
-          <Send sx={{ color: "white", fontSize: { xs: "1.25rem", sm: "1.5rem" } }} />
+          <Send
+            sx={{ color: "white", fontSize: { xs: "1.25rem", sm: "1.5rem" } }}
+          />
         </IconButton>
       </Box>
     </Box>
