@@ -1,6 +1,6 @@
 "use client";
 
-import { User } from "@/typed";
+import { UserConversation } from "@/typed";
 import {
   Box,
   CircularProgress,
@@ -16,7 +16,7 @@ import { useUserStatus } from "@/context/UserStatus";
 
 interface ListedUserProps {
   isLoading: boolean;
-  searchUser: User[];
+  searchUser: UserConversation[];
   setMobile: (mobile: boolean) => void;
 }
 
@@ -76,7 +76,7 @@ const ListedUser = ({ isLoading, searchUser, setMobile }: ListedUserProps) => {
                       noWrap
                       sx={{ maxWidth: { xs: "130px", sm: "240px" } }}
                     >
-                      Last message preview goes here...
+                      {user.lastMessage}
                     </Typography>
                   }
                 />
@@ -87,7 +87,7 @@ const ListedUser = ({ isLoading, searchUser, setMobile }: ListedUserProps) => {
                   variant="caption"
                   sx={{ fontSize: "0.75rem", color: "gray" }}
                 >
-                  {new Date().toLocaleTimeString([], {
+                  {new Date(user.lastMessageTime).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
                   })}

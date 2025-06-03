@@ -1,5 +1,5 @@
 import socket from "@/context/socket";
-import { User } from "@/typed";
+import { UserConversation } from "@/typed";
 import { Send } from "@mui/icons-material";
 import {
   Box,
@@ -13,8 +13,8 @@ import { useRef } from "react";
 interface Message {
   input: string;
   setInput: (value: string) => void;
-  user: User;
-  receiver: User;
+  user: UserConversation;
+  receiver: UserConversation;
 }
 
 const SearchMessage = ({ input, setInput, user, receiver }: Message) => {

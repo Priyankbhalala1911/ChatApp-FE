@@ -1,14 +1,19 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { User } from "@/typed";
+import { UserConversation } from "@/typed";
 
 interface UserStatusContextType {
-  users: User[];
-  setUsers: React.Dispatch<React.SetStateAction<User[]>>;
+  users: UserConversation[];
+  setUsers: React.Dispatch<React.SetStateAction<UserConversation[]>>;
   updateUserStatus: (userId: string, isOnline: boolean) => void;
-  selectedUser: User | null;
-  setSelectedUser: (user: User | null) => void;
+  selectedUser: UserConversation | null;
+  setSelectedUser: (user: UserConversation | null) => void;
+  updateLastMessageForUser: (
+    userId: string,
+    message: string,
+    time?: string
+  ) => void;
 }
 
 const UserStatusContext = createContext<UserStatusContextType>({
@@ -17,6 +22,7 @@ const UserStatusContext = createContext<UserStatusContextType>({
   updateUserStatus: () => {},
   selectedUser: null,
   setSelectedUser: () => {},
+  updateLastMessageForUser: () => {},
 });
 
 export const UserStatusProvider = ({
@@ -24,13 +30,37 @@ export const UserStatusProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [users, setUsers] = useState<UserConversation[]>([]);
+  const [selectedUser, setSelectedUser] = useState<UserConversation | null>(
+    null
+  );
 
   const updateUserStatus = (userId: string, isOnline: boolean) => {
     setUsers((prev) =>
       prev.map((user) => (user.id === userId ? { ...user, isOnline } : user))
     );
+  };
+
+  const updateLastMessageForUser = (
+    userId: string,
+    message: string,
+    time: string = new Date().toISOString()
+  ) => {
+    setUsers((prev) =>
+      prev.map((user) =>
+        user.id === userId
+          ? { ...user, lastMessage: message, lastMessageTime: time }
+          : user
+      )
+    );
+
+    if (selectedUser?.id === userId) {
+      setSelectedUser({
+        ...selectedUser,
+        lastMessage: message,
+        lastMessageTime: time,
+      });
+    }
   };
 
   useEffect(() => {
@@ -50,6 +80,7 @@ export const UserStatusProvider = ({
         updateUserStatus,
         selectedUser,
         setSelectedUser,
+        updateLastMessageForUser,
       }}
     >
       {children}

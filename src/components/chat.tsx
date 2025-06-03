@@ -13,6 +13,7 @@ import {
 import OnlineStatus from "./OnlineStatus";
 import SearchMessage from "./SearchMessage";
 import Typing from "./Typing";
+import { useUserStatus } from "@/context/UserStatus";
 
 const Chat = ({ receiver }: { receiver: User }) => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -21,6 +22,7 @@ const Chat = ({ receiver }: { receiver: User }) => {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
+  const { updateLastMessageForUser } = useUserStatus();
 
   useEffect(() => {
     const fetchConversation = async () => {
@@ -97,6 +99,12 @@ const Chat = ({ receiver }: { receiver: User }) => {
       ) {
         setMessages((prev) => [...prev, payload]);
       }
+
+      updateLastMessageForUser(
+        receiver.id,
+        payload.text,
+        new Date().toISOString()
+      );
     };
 
     socket.on("received_message", handleReceivedMessage);
@@ -157,8 +165,17 @@ const Chat = ({ receiver }: { receiver: User }) => {
       <SearchMessage
         input={input}
         setInput={setInput}
-        user={{ ...user, isOnline: true }}
-        receiver={receiver}
+        user={{
+          ...user,
+          isOnline: true,
+          lastMessage: "",
+          lastMessageTime: "",
+        }}
+        receiver={{
+          ...receiver,
+          lastMessage: "",
+          lastMessageTime: "",
+        }}
       />
     </Box>
   );
