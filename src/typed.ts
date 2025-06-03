@@ -7,6 +7,10 @@ export interface User {
   isOnline: boolean;
 }
 
+export interface UserConversation extends User {
+  lastMessage: string;
+  lastMessageTime: string;
+}
 export interface Conversation {
   id: string;
   isGroup: boolean;
