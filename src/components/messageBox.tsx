@@ -1,7 +1,6 @@
 import { useAuth } from "@/context/AuthContext";
 import socket from "@/context/socket";
 import { Message } from "@/typed";
-import { FormattedDateAndTime } from "@/utils/formattedDateAndTime";
 import { groupMessagesByDate } from "@/utils/groupMessagesByDate";
 import { DoneAll } from "@mui/icons-material";
 import { Box, CircularProgress, Typography } from "@mui/material";
@@ -150,7 +149,10 @@ const MessagesBox: React.FC<MessagesBoxProps> = ({
             marginBottom: { xs: "8px", sm: "12px" },
           }}
         >
-          {FormattedDateAndTime(msg.createdAt)}
+          {new Date(msg.createdAt).toLocaleTimeString("en-In", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
         </Typography>
       </Box>
     );
