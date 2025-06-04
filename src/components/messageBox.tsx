@@ -112,6 +112,7 @@ const MessagesBox: React.FC<MessagesBoxProps> = ({
             sx={{
               lineHeight: 1.4,
               fontSize: { xs: "0.875rem", sm: "1rem" },
+              textAlign: "left",
             }}
           >
             {msg.text}

@@ -27,6 +27,7 @@ const Chat = ({ receiver }: { receiver: User }) => {
   useEffect(() => {
     const fetchConversation = async () => {
       try {
+        setLoading(true);
         const conversation = await getConversationByUserId(receiver.id);
         if (conversation?.data?.id) {
           setConversationId(conversation.data.id);
@@ -38,6 +39,8 @@ const Chat = ({ receiver }: { receiver: User }) => {
         console.error("Error fetching conversation:", error);
         setConversationId(null);
         setMessages([]);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -69,7 +72,6 @@ const Chat = ({ receiver }: { receiver: User }) => {
         setMessages([]);
         return;
       }
-      setLoading(true);
       try {
         const message = await getMessagesByConversationId(conversationId);
         if (message?.data?.length > 0) {
@@ -80,8 +82,6 @@ const Chat = ({ receiver }: { receiver: User }) => {
       } catch (error) {
         console.error("Error fetching messages:", error);
         setMessages([]);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -98,6 +98,9 @@ const Chat = ({ receiver }: { receiver: User }) => {
         (payload.sender.id === receiver.id && payload.receiver.id === user.id)
       ) {
         setMessages((prev) => [...prev, payload]);
+        if (payload.conversation?.id) {
+          setConversationId(payload.conversation.id);
+        }
       }
 
       updateLastMessageForUser(
@@ -112,7 +115,7 @@ const Chat = ({ receiver }: { receiver: User }) => {
     return () => {
       socket.off("received_message", handleReceivedMessage);
     };
-  }, [user.id, receiver.id]);
+  }, [user.id, receiver.id, updateLastMessageForUser]);
 
   return (
     <Box
