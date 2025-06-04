@@ -46,13 +46,18 @@ export const UserStatusProvider = ({
     message: string,
     time: string = new Date().toISOString()
   ) => {
-    setUsers((prev) =>
-      prev.map((user) =>
+    setUsers((prev) => {
+      const updated = prev.map((user) =>
         user.id === userId
           ? { ...user, lastMessage: message, lastMessageTime: time }
           : user
-      )
-    );
+      );
+      return updated.sort(
+        (a, b) =>
+          new Date(b.lastMessageTime).getTime() -
+          new Date(a.lastMessageTime).getTime()
+      );
+    });
 
     if (selectedUser?.id === userId) {
       setSelectedUser({
