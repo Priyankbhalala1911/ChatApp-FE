@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import OnlineStatus from "./OnlineStatus";
 import { useUserStatus } from "@/context/UserStatus";
+import { useAuth } from "@/context/AuthContext";
 
 interface ListedUserProps {
   isLoading: boolean;
@@ -22,6 +23,9 @@ interface ListedUserProps {
 
 const ListedUser = ({ isLoading, searchUser, setMobile }: ListedUserProps) => {
   const { setSelectedUser } = useUserStatus();
+  const { user } = useAuth();
+
+  const filteredSearchUser = searchUser.filter((u) => u.id !== user.id);
 
   return (
     <List sx={{ p: 0 }}>
@@ -37,8 +41,8 @@ const ListedUser = ({ isLoading, searchUser, setMobile }: ListedUserProps) => {
         >
           <CircularProgress sx={{ color: "rgba(102, 126, 234, 0.8)" }} />
         </Box>
-      ) : searchUser.length > 0 ? (
-        searchUser.map((user, index) => (
+      ) : filteredSearchUser.length > 0 ? (
+        filteredSearchUser.map((user, index) => (
           <Box key={user.id}>
             <ListItem
               onClick={() => {
@@ -59,61 +63,56 @@ const ListedUser = ({ isLoading, searchUser, setMobile }: ListedUserProps) => {
                 },
               }}
             >
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                <ListItemAvatar>
-                  <OnlineStatus user={user} />
-                </ListItemAvatar>
-                <ListItemText
-                  primary={
-                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                      {user.name}
-                    </Typography>
-                  }
-                  secondary={
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      noWrap
-                      sx={{ maxWidth: { xs: "130px", sm: "240px" } }}
-                    >
-                      {user.lastMessage}
-                    </Typography>
-                  }
-                />
-              </Box>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  width: "100%",
+                }}
+              >
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <ListItemAvatar>
+                    <OnlineStatus user={user} />
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                        {user.name}
+                      </Typography>
+                    }
+                    secondary={
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        noWrap
+                        sx={{ maxWidth: { xs: "170px", sm: "180px" } }}
+                      >
+                        {user.lastMessage}
+                      </Typography>
+                    }
+                  />
+                </Box>
 
-              <Box sx={{ textAlign: "right" }}>
-                <Typography
-                  variant="caption"
-                  sx={{ fontSize: "0.75rem", color: "gray" }}
+                <Box
+                  sx={{ alignSelf: "flex-start", textAlign: "right", py: 0.75 }}
                 >
-                  {new Date(user.lastMessageTime).toLocaleString("en-GB", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "2-digit",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: true,
-                  })}
-                </Typography>
-
-                {/* <Box
-                  sx={{
-                    mt: 0.5,
-                    backgroundColor: "#4caf50",
-                    color: "white",
-                    borderRadius: "50%",
-                    width: 20,
-                    height: 20,
-                    fontSize: 12,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    ml: "auto",
-                  }}
-                >
-                  1
-                </Box> */}
+                  <Typography
+                    variant="caption"
+                    sx={{ fontSize: "0.75rem", color: "gray" }}
+                  >
+                    {user.lastMessageTime
+                      ? new Date(user.lastMessageTime).toLocaleString("en-GB", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: true,
+                        })
+                      : ""}
+                  </Typography>
+                </Box>
               </Box>
             </ListItem>
 
