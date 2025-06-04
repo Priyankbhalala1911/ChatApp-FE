@@ -1,9 +1,25 @@
 import { User } from "@/typed";
 import { Avatar, Badge } from "@mui/material";
+import { keyframes } from "@emotion/react";
 
 interface OnlineStatusUser {
   user: User;
 }
+
+const pulse = keyframes`
+  0% {
+    transform: scale(0.8);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(0.8);
+    opacity: 0.7;
+  }
+`;
 
 const OnlineStatus = ({ user }: OnlineStatusUser) => {
   return (
@@ -19,16 +35,17 @@ const OnlineStatus = ({ user }: OnlineStatusUser) => {
       sx={{
         "& .MuiBadge-badge": {
           backgroundColor: "#44b700",
+          boxShadow: "0 0 0 2px white",
           "&::after": {
+            content: '""',
             position: "absolute",
             top: 0,
             left: 0,
             width: "100%",
             height: "100%",
             borderRadius: "50%",
-            animation: "ripple 1.2s infinite ease-in-out",
+            animation: `${pulse} 1.2s infinite ease-in-out`,
             border: "2px solid #44b700",
-            content: '""',
           },
         },
       }}
@@ -46,4 +63,5 @@ const OnlineStatus = ({ user }: OnlineStatusUser) => {
     </Badge>
   );
 };
+
 export default OnlineStatus;
